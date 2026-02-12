@@ -1,0 +1,27 @@
+"""Mempool.space data provider."""
+from extraction.base import BlockchainProvider
+from api_client import get_api_data
+
+
+class MempoolProvider(BlockchainProvider):
+    """Fetches block and transaction data from mempool.space/api."""
+
+    BASE_URL = "https://mempool.space/api"
+
+    @property
+    def name(self) -> str:
+        return "mempool"
+
+    @property
+    def rate_limit(self) -> int:
+        return 600  # Conservative estimate per hour
+
+    def get_latest_blocks(self, count: int = 10) -> list[dict]:
+        blocks = get_api_data(f"{self.BASE_URL}/blocks")
+        if not blocks:
+            return []
+        return blocks[:count]
+
+    def get_block_transactions(self, block_hash: str, start_index: int = 0) -> list[dict] | None:
+        url = f"{self.BASE_URL}/block/{block_hash}/txs/{start_index}"
+        return get_api_data(url)
